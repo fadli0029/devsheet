@@ -7,7 +7,7 @@ github: "https://github.com/username/amet-config"
 
 Personal configuration files. Lorem ipsum dolor sit amet.
 
-![Config preview](/img/reese-harvey-PBrztVP-wfY-unsplash.jpg)
+![Config preview](/img/meme_cpp.jpeg)
 
 ## Stack
 

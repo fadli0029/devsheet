@@ -7,7 +7,7 @@ github: "https://github.com/username/dolor-tool"
 
 Dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt.
 
-![Project screenshot](/img/aio-screen.png)
+![Project screenshot](/img/meme.png)
 
 ## Overview
 

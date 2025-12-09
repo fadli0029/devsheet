@@ -48,7 +48,7 @@ $$
 
 ## Images
 
-![Sample image](/img/aio-screen.png)
+![Sample image](/img/meme.png)
 
 Lorem ipsum dolor sit amet after image.
 

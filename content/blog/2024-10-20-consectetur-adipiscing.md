@@ -8,7 +8,7 @@ description: "Tempor incididunt ut labore"
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
-![Another image](/img/reese-harvey-PBrztVP-wfY-unsplash.jpg)
+![Another image](/img/meme_cpp.jpeg)
 
 ## Analysis
 
