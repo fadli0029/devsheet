@@ -2,8 +2,6 @@ baseURL = "https://example.com/"
 languageCode = "en-us"
 title = "Lorem Ipsum"
 theme = "devsheet"
-relativeURLs = true
-uglyURLs = false
 
 [params]
   author = "lorem ipsum"
