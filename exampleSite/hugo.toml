@@ -1,5 +1,5 @@
 baseURL = "https://example.com/"
-languageCode = "en-us"
+locale = "en-US"
 title = "Lorem Ipsum"
 theme = "devsheet"
 enableRobotsTXT = true
