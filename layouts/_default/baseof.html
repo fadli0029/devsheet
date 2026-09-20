@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{{/* No data-theme here on purpose: head.html sets it before first paint, and when
+     JS is off the CSS prefers-color-scheme fallback decides instead of being
+     overridden to light. The no-js class is removed by that same script. */}}
+<html lang="{{ .Site.Language.Lang }}" class="no-js">
+<head>
+  {{- partial "head.html" . -}}
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <div class="container">
+    {{- partial "header.html" . -}}
+    <main id="main" tabindex="-1">
+      {{- block "main" . }}{{- end }}
+    </main>
+    {{- partial "footer.html" . -}}
+  </div>
+  {{- partial "scripts.html" . -}}
+</body>
+</html>

@@ -1,0 +1,358 @@
+{{ $searchIndex := .Site.Home.OutputFormats.Get "json" }}
+
+<!-- Close the mobile menu on an outside click (toggleMenu itself is in head.html) -->
+<script>
+document.addEventListener('click', function (e) {
+  var links = document.querySelector('.nav-links');
+  if (!links || !links.classList.contains('active')) return;
+  if (e.target.closest('.hamburger') || e.target.closest('.nav-links')) return;
+  links.classList.remove('active');
+  var button = document.querySelector('.hamburger');
+  if (button) button.setAttribute('aria-expanded', 'false');
+});
+</script>
+
+<!-- Copy email to clipboard -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.copy-email').forEach(function (emailLink) {
+    emailLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      var self = this;
+      // navigator.clipboard is undefined on insecure origins (hugo server over
+      // LAN, intranet http) and rejects when the document is not focused.
+      if (!navigator.clipboard) { window.location.href = this.href; return; }
+      navigator.clipboard.writeText(this.dataset.email).then(function () {
+        self.setAttribute('data-tooltip', 'copied!');
+        self.classList.add('show-tooltip');
+        setTimeout(function () { self.classList.remove('show-tooltip'); }, 1500);
+      }).catch(function () {
+        window.location.href = self.href;
+      });
+    });
+  });
+});
+</script>
+
+{{ with $searchIndex }}
+<!-- Search -->
+{{ $fuse := resources.Get "vendor/fuse.min.js" | fingerprint }}
+<script src="{{ $fuse.RelPermalink }}" defer></script>
+<script>
+(function () {
+  var modal = document.getElementById('search-modal');
+  if (!modal) return;
+
+  // Bound now, not on DOMContentLoaded: that event waits for the deferred Fuse
+  // and KaTeX bundles, and the search button is clickable long before then.
+  var input = document.getElementById('search-input');
+  var results = document.getElementById('search-results');
+  var fuse = null;
+  var loading = null;
+  var failed = false;
+  var active = -1;
+
+  function loadSearchIndex() {
+    if (loading) return loading;
+    // URL comes from Hugo's own JSON output, so it stays correct when the site is
+    // served from a subdirectory. A hardcoded "/index.json" 404s there.
+    loading = fetch(modal.dataset.index)
+      .then(function (r) {
+        if (!r.ok) throw new Error('search index HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        fuse = new Fuse(data, {
+          keys: ['title', 'tags', 'summary'],
+          threshold: 0.3,
+          includeMatches: true
+        });
+      })
+      .catch(function (err) {
+        failed = true;
+        console.error('devsheet: could not load search index', err);
+      });
+    return loading;
+  }
+
+  var invoker = null;
+
+  function reset() {
+    input.value = '';
+    results.innerHTML = '';
+    active = -1;
+    input.removeAttribute('aria-activedescendant');
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  // head.html installs a stub that records clicks arriving before this runs.
+  var queued = window.__devsheetSearchQueued;
+  window.openSearch = function () {
+    // A previous failure must not be permanent: clear it so this open retries.
+    if (failed) { failed = false; loading = null; }
+    // State is cleared on open, not on close. Dismissing a <dialog> with Escape
+    // fires `cancel` and in some browsers no `close`, so resetting in a teardown
+    // handler leaks the previous query into the next open.
+    reset();
+    say('');
+    // <dialog> restores focus to the invoker on close, but only when it had focus
+    // to begin with. Opening via the keyboard shortcut would otherwise drop the
+    // user on <body>.
+    invoker = document.activeElement;
+    if (!modal.open) modal.showModal();
+    input.focus();
+    loadSearchIndex();
+  };
+
+  function say(text) {
+    var status = document.getElementById('search-status');
+    if (!status) return;
+    // Re-announce even when the text is unchanged: assistive tech ignores a
+    // write that does not alter the node.
+    status.textContent = '';
+    window.setTimeout(function () { status.textContent = text; }, 30);
+  }
+
+  function setActive(next) {
+    var items = results.querySelectorAll('.search-result');
+    if (!items.length) return;
+    if (active >= 0 && items[active]) {
+      items[active].classList.remove('active');
+      items[active].setAttribute('aria-selected', 'false');
+    }
+    active = (next + items.length) % items.length;
+    var el = items[active];
+    el.classList.add('active');
+    el.setAttribute('aria-selected', 'true');
+    el.scrollIntoView({ block: 'nearest' });
+    input.setAttribute('aria-activedescendant', el.id);
+  }
+
+  function render() {
+    var query = input.value.trim();
+    active = -1;
+    input.removeAttribute('aria-activedescendant');
+    results.innerHTML = '';
+
+    if (!query || !fuse) {
+      input.setAttribute('aria-expanded', 'false');
+      if (query && failed) {
+        var err = document.createElement('div');
+        err.className = 'search-no-results';
+        err.setAttribute('role', 'option');
+        err.setAttribute('aria-disabled', 'true');
+        err.textContent = 'Search is unavailable right now.';
+        results.appendChild(err);
+        say('Search is unavailable right now.');
+      }
+      return;
+    }
+
+    var matches = fuse.search(query).slice(0, 10);
+    if (matches.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'search-no-results';
+      empty.setAttribute('role', 'option');
+      empty.setAttribute('aria-disabled', 'true');
+      empty.textContent = 'No results found';
+      results.appendChild(empty);
+      input.setAttribute('aria-expanded', 'false');
+      say('No results found');
+      return;
+    }
+
+    // Built as DOM nodes, not concatenated HTML: post titles legitimately contain
+    // characters like < and & (std::vector<T>, A & B) that would corrupt the markup.
+    matches.forEach(function (match, i) {
+      var item = match.item;
+
+      var link = document.createElement('a');
+      link.className = 'search-result';
+      link.id = 'search-result-' + i;
+      link.href = item.url;
+      link.setAttribute('role', 'option');
+      link.setAttribute('aria-selected', 'false');
+
+      var title = document.createElement('span');
+      title.className = 'search-result-title';
+      title.textContent = item.title;
+      link.appendChild(title);
+
+      var date = document.createElement('span');
+      date.className = 'search-result-date';
+      date.textContent = item.date;
+      link.appendChild(date);
+
+      var tags = item.tags || [];
+      if (tags.length) {
+        var tagRow = document.createElement('div');
+        tagRow.className = 'search-result-tags';
+        tags.forEach(function (t) {
+          var tag = document.createElement('span');
+          tag.className = 'search-tag';
+          tag.textContent = t;
+          tagRow.appendChild(tag);
+        });
+        link.appendChild(tagRow);
+      }
+
+      results.appendChild(link);
+    });
+    input.setAttribute('aria-expanded', 'true');
+    say(matches.length + (matches.length === 1 ? ' result' : ' results'));
+  }
+
+  // Listeners attach immediately too, so the shortcut works during load.
+  (function () {
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (modal.open) { input.focus(); input.select(); return; }
+        openSearch();
+      }
+    });
+
+    // <dialog> handles Escape itself; reset state whenever it closes, however it closed.
+    ['close', 'cancel'].forEach(function (event) {
+      modal.addEventListener(event, function () {
+        if (invoker && document.body.contains(invoker) &&
+            (document.activeElement === document.body || document.activeElement === null)) {
+          invoker.focus();
+        }
+      });
+    });
+
+    // A backdrop click targets the dialog element itself, never its contents.
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) modal.close();
+    });
+
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+      else if (e.key === 'Enter' && active >= 0) {
+        var items = results.querySelectorAll('.search-result');
+        if (items[active]) { e.preventDefault(); items[active].click(); }
+      }
+    });
+
+    // Re-render once the index lands so a query typed during the fetch is not swallowed.
+    input.addEventListener('input', function () {
+      if (!fuse) loadSearchIndex().then(render);
+      render();
+    });
+
+    if (queued || window.__devsheetSearchQueued) openSearch();
+  })();
+})();
+</script>
+{{ end }}
+
+<!-- Make wide tables scrollable without destroying their semantics -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('article table').forEach(function (table) {
+    if (table.parentElement.classList.contains('table-wrapper')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'table-wrapper';
+    // tabindex makes the scroll region reachable by keyboard (WCAG 2.1.1);
+    // the label is what a screen reader announces on entering it.
+    wrap.tabIndex = 0;
+    wrap.setAttribute('role', 'region');
+    wrap.setAttribute('aria-label', 'Table, scrollable');
+    table.parentNode.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  });
+});
+</script>
+
+<!-- Copy code blocks -->
+<script>
+(function () {
+// The static aria-label masked the visible confirmation, so a screen reader never
+// learned the copy succeeded. Update the accessible name too.
+function announce(button, text, ok) {
+  button.textContent = text;
+  button.setAttribute('aria-label', text === 'copy' ? 'Copy code' : text);
+  if (ok) button.classList.add('copied');
+  setTimeout(function () {
+    button.textContent = 'copy';
+    button.setAttribute('aria-label', 'Copy code');
+    button.classList.remove('copied');
+  }, 1500);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // With lineNumbersInTable (Hugo's default) Chroma emits TWO `pre > code` per
+  // block: one for the line-number gutter, one for the code. Selecting the outer
+  // wrapper avoids a duplicate button that copies "1\n2\n3".
+  var blocks = document.querySelectorAll('.highlight, pre:not(.chroma) > code');
+
+  blocks.forEach(function (block) {
+    var wrapper = block.classList.contains('highlight') ? block : block.parentElement;
+
+    // Prefer the code cell of a line-number table; fall back to the only code element.
+    var source = wrapper.querySelector('.lntd:last-child code') ||
+                 wrapper.querySelector('pre > code') ||
+                 wrapper;
+
+    var shell = document.createElement('div');
+    shell.className = 'code-block-wrapper';
+    wrapper.parentNode.insertBefore(shell, wrapper);
+    shell.appendChild(wrapper);
+
+    var button = document.createElement('button');
+    button.className = 'copy-code-btn';
+    button.type = 'button';
+    button.textContent = 'copy';
+    button.setAttribute('aria-label', 'Copy code');
+
+    button.addEventListener('click', function () {
+      if (!navigator.clipboard) { announce(button, 'unavailable'); return; }
+      navigator.clipboard.writeText(source.textContent).then(function () {
+        announce(button, 'copied!', true);
+      }).catch(function () {
+        announce(button, 'failed');
+      });
+    });
+
+    shell.appendChild(button);
+  });
+});
+})();
+</script>
+
+{{ if ne .Site.Params.math false }}
+<!-- KaTeX auto-render -->
+{{ $katex := resources.Get "vendor/katex.min.js" | fingerprint }}
+{{ $autoRender := resources.Get "vendor/katex-auto-render.min.js" | fingerprint }}
+<script defer src="{{ $katex.RelPermalink }}"></script>
+<script defer src="{{ $autoRender.RelPermalink }}"></script>
+<script>
+{{/* KaTeX's `delimiters` option REPLACES its defaults rather than extending them.
+     Passing only $$…$$ and $…$ therefore silently dropped \(…\), \[…\] and every
+     \begin{align}/{equation}/{gather}/{CD} block. The full default set is spelled
+     out here so nothing is lost.
+
+     $…$ for inline math is OFF by default: it collides with ordinary prose on a
+     developer blog, turning "costs $5 today and $10 tomorrow" and "set $HOME and
+     $PATH" into mangled math. Opt in with mathInlineDollar = true. */}}
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof renderMathInElement !== 'function') return;
+  var delimiters = [
+    {left: '$$', right: '$$', display: true},
+    {left: '\\[', right: '\\]', display: true},
+    {left: '\\(', right: '\\)', display: false},
+    {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+    {left: '\\begin{align}', right: '\\end{align}', display: true},
+    {left: '\\begin{alignat}', right: '\\end{alignat}', display: true},
+    {left: '\\begin{gather}', right: '\\end{gather}', display: true},
+    {left: '\\begin{CD}', right: '\\end{CD}', display: true}
+  ];
+  {{ if .Site.Params.mathInlineDollar }}
+  delimiters.push({left: '$', right: '$', display: false});
+  {{ end }}
+  renderMathInElement(document.body, {delimiters: delimiters, throwOnError: false});
+});
+</script>
+{{ end }}

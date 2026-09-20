@@ -1,48 +1,7 @@
-baseURL = "https://example.com/"
-languageCode = "en-us"
-title = "Lorem Ipsum"
-theme = "devsheet"
-
-[params]
-  author = "lorem ipsum"
-  description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-  github = "https://github.com/username"
-  linkedin = "https://linkedin.com/in/username"
-  email = "hello@example.com"
-  syntaxHighlighting = true
-  showProjects = true
-
-[markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
-  [markup.highlight]
-    anchorLineNos = false
-    codeFences = true
-    guessSyntax = false
-    hl_Lines = ""
-    hl_inline = false
-    lineAnchors = ""
-    lineNoStart = 1
-    lineNos = false
-    lineNumbersInTable = true
-    noClasses = false
-    noHl = false
-    style = "github"
-    tabWidth = 4
-
-[menu]
-  [[menu.main]]
-    name = "blog"
-    url = "/blog/"
-    weight = 1
-  [[menu.main]]
-    name = "about"
-    url = "/about/"
-    weight = 2
-
-[outputs]
-  home = ["HTML"]
-  section = ["HTML"]
-  taxonomy = ["HTML"]
-  term = ["HTML"]
+# Theme-level configuration. Hugo reads [module.hugoVersion] from a theme's own
+# config file, not from theme.toml, so the version constraint has to live here to
+# actually warn anyone. Keep this file minimal: everything in it merges into the
+# consuming site's configuration.
+[module]
+  [module.hugoVersion]
+    min = "0.122.0"

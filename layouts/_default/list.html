@@ -1,0 +1,29 @@
+{{ define "main" }}
+{{/* Sections outside mainSections (e.g. projects) list as undated cards; everything
+     else, including taxonomy and term pages, lists as dated posts. */}}
+{{ $dated := not (and (eq .Kind "section") (not (in .Site.Params.mainSections .Section))) }}
+<section>
+  {{ with .Title }}<h1>{{ . }}</h1>{{ end }}
+  {{ with .Content }}{{ . }}{{ end }}
+
+  {{ if $dated }}
+  <ul class="post-list">
+    {{ range .Pages }}
+    <li>
+      <span class="post-date">{{ if not .Date.IsZero }}{{ .Date.Format "2006-01-02" }}{{ end }}</span>
+      <a href="{{ .RelPermalink }}" class="post-title">{{ .Title }}</a>
+    </li>
+    {{ end }}
+  </ul>
+  {{ else }}
+  <ul class="project-list">
+    {{ range .Pages }}
+    <li>
+      <a href="{{ .RelPermalink }}" class="project-title">{{ .Title }}</a>
+      {{ with .Params.description }}<span class="project-desc">{{ . }}</span>{{ end }}
+    </li>
+    {{ end }}
+  </ul>
+  {{ end }}
+</section>
+{{ end }}

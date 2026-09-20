@@ -1,0 +1,1019 @@
+/* ========================================
+   Fonts (self-hosted, SIL OFL 1.1 - see static/fonts/OFL.txt)
+   Paths are relative to this stylesheet, so they survive any baseURL.
+   ======================================== */
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/maple-mono-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Maple Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/maple-mono-latin-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Crimson Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/crimson-pro-latin-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Crimson Pro";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/crimson-pro-latin-600-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Crimson Pro";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/crimson-pro-latin-400-italic.woff2") format("woff2");
+}
+
+/* ========================================
+   CSS Variables - Theme Colors
+   ======================================== */
+:root {
+  --font-serif: "Crimson Pro", Georgia, "Times New Roman", serif;
+  --font-mono: "Maple Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --content-width: 75ch;
+  --line-height: 1.75;
+}
+
+/* Fallback for readers with JS disabled: nothing sets data-theme, so the OS
+   preference decides. The attribute, when present, always wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #161616;
+    --bg-secondary: #1c1c1c;
+    --text: #d8d8d8;
+    --text-muted: #888;
+    --link: #6fa8dc;
+    --code-bg: #1e1e1e;
+    --code-border: #2a2a2a;
+    --border: #2a2a2a;
+    --control-border: #6a6a6a;
+  }
+}
+
+:root,
+[data-theme="light"] {
+  --bg: #fafafa;
+  --bg-secondary: #f3f3f3;
+  --text: #1a1a1a;
+  --text-muted: #555;
+  --link: #1a5fb4;
+  --code-bg: #f0f0f0;
+  --code-border: #e0e0e0;
+  --border: #ddd;
+  --control-border: #898989;
+}
+
+[data-theme="dark"] {
+  --bg: #161616;
+  --bg-secondary: #1c1c1c;
+  --text: #d8d8d8;
+  --text-muted: #888;
+  --link: #6fa8dc;
+  --code-bg: #1e1e1e;
+  --code-border: #2a2a2a;
+  --border: #2a2a2a;
+  --control-border: #6a6a6a;
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+html {
+  font-size: 112.5%; /* 18px at the default 16px, but scales with the reader's setting */
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: var(--line-height);
+  color: var(--text);
+  background-color: var(--bg);
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ========================================
+   Layout
+   ======================================== */
+.container {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   Header / Navigation
+   ======================================== */
+header {
+  position: relative;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.site-title {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.site-title:hover {
+  color: var(--link);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  /* Must wrap: at 200% text, or with the no-JS fallback showing every link,
+     a nowrap row runs past the viewport (WCAG 1.4.4 / 1.4.10). */
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+  min-width: 0;
+}
+
+nav a {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+nav a:hover {
+  color: var(--text);
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* ========================================
+   Article Header
+   ======================================== */
+.article-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.article-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.3;
+}
+
+.article-meta {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.article-meta span {
+  margin: 0 0.5rem;
+}
+
+/* ========================================
+   Article Content
+   ======================================== */
+article h1, article h2, article h3, article h4 {
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+article h2 {
+  font-size: 1.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+
+article h3 {
+  font-size: 1.15rem;
+}
+
+article p {
+  margin: 0 0 1.25rem 0;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Underlined always: link colour against body text is 2.8:1 light / 1.8:1 dark,
+   under the 3:1 that WCAG 1.4.1 requires before colour may carry meaning alone. */
+article a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+article a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ========================================
+   Code Blocks
+   ======================================== */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+/* Inline code */
+p code, li code, td code {
+  background: var(--code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+}
+
+/* Code blocks */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  line-height: 1.5;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ========================================
+   Math (KaTeX)
+   ======================================== */
+.katex-display {
+  margin: 2rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* ========================================
+   Blockquotes
+   ======================================== */
+blockquote {
+  margin: 1.5rem 0;
+  padding: 0.5rem 0 0.5rem 1.5rem;
+  border-left: 3px solid var(--border);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+/* ========================================
+   Lists
+   ======================================== */
+ul, ol {
+  margin: 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   Figures / Images
+   ======================================== */
+figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+figure img {
+  max-width: 100%;
+  height: auto;
+}
+
+figcaption {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+  font-style: italic;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Article images - full content width */
+article img {
+  width: 100%;
+  height: auto;
+  margin: 1.5rem 0;
+}
+
+/* ========================================
+   Horizontal Rule
+   ======================================== */
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   Blog List (Home page preview)
+   ======================================== */
+.post-list {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+}
+
+.post-list li {
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.post-date {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 6rem;
+}
+
+.post-title {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.post-title:hover {
+  color: var(--link);
+}
+
+.post-desc {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   Project List
+   ======================================== */
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0;
+}
+
+.project-list li {
+  margin-bottom: 1.5rem;
+}
+
+.project-title {
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+}
+
+.project-title:hover {
+  color: var(--link);
+}
+
+.project-desc {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* ========================================
+   GitHub Link in Article Meta
+   ======================================== */
+.github-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.github-link:hover {
+  color: var(--link);
+}
+
+.github-link svg {
+  vertical-align: middle;
+}
+
+/* ========================================
+   Section Divider
+   ======================================== */
+.section-title {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+/* ========================================
+   Intro / Bio (Home page)
+   ======================================== */
+.intro {
+  margin-bottom: 3rem;
+}
+
+.intro p {
+  text-align: left;
+}
+
+.links {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+
+.links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-right: 1.5rem;
+}
+
+.links a:hover {
+  color: var(--link);
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+th, td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  font-weight: 600;
+}
+
+/* ========================================
+   Theme Toggle Glyph
+   ======================================== */
+/* Keyed on the attribute rather than set by JS, so it is right on the first paint. */
+.theme-toggle::before {
+  content: "\263E";
+}
+
+[data-theme="dark"] .theme-toggle::before {
+  content: "\2600";
+}
+
+/* ========================================
+   Mobile Menu
+   ======================================== */
+/* Lets the links share nav's flex row on desktop, and become their own column on mobile. */
+.nav-links {
+  display: contents;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.hamburger:hover {
+  color: var(--text);
+}
+
+/* ========================================
+   PDF Link in Article Meta
+   ======================================== */
+.pdf-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.pdf-link:hover {
+  color: var(--link);
+}
+
+.pdf-link svg {
+  vertical-align: middle;
+}
+
+/* ========================================
+   Contact Links (list form, e.g. an about page)
+   ======================================== */
+.contact-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.contact-links a:hover {
+  color: var(--link);
+}
+
+/* ========================================
+   Copy Email Tooltip
+   ======================================== */
+.copy-email {
+  position: relative;
+}
+
+.copy-email.show-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  margin-bottom: 0.25rem;
+}
+
+/* ========================================
+   Section Label in Post Lists
+   ======================================== */
+.post-section {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  /* Fixed width so titles stay aligned when labels differ in length ([bit] vs [blog]). */
+  min-width: 3.5em;
+}
+
+/* ========================================
+   Code Block Copy Button
+   ======================================== */
+.code-block-wrapper {
+  position: relative;
+}
+
+.copy-code-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.code-block-wrapper:hover .copy-code-btn,
+.copy-code-btn:focus-visible {
+  opacity: 1;
+}
+
+/* Touch devices never fire :hover, so reveal-on-hover would leave an invisible
+   but tappable button. Show it outright there. */
+/* Touch devices never fire :hover. Rather than reveal the overlay button on top
+   of the first line of code, move it out of the way entirely. */
+@media (hover: none) {
+  .code-block-wrapper {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .copy-code-btn {
+    position: static;
+    opacity: 1;
+    align-self: flex-end;
+    margin-bottom: 0.35rem;
+  }
+}
+
+.copy-code-btn:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.copy-code-btn.copied {
+  color: var(--link);
+}
+
+/* ========================================
+   Search
+   ======================================== */
+.search-toggle {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.search-toggle:hover {
+  color: var(--text);
+}
+
+.search-modal {
+  margin: 15vh auto auto;
+  padding: 0;
+  border: none;
+  background: none;
+  max-width: 500px;
+  width: 90%;
+  color: inherit;
+}
+
+.search-modal::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.search-container {
+  background: var(--bg);
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+#search-input {
+  width: 100%;
+  padding: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  color: var(--text);
+}
+
+#search-input::placeholder {
+  color: var(--text-muted);
+}
+
+#search-results {
+  margin-top: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.search-result {
+  display: block;
+  padding: 0.75rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s ease;
+}
+
+.search-result:hover,
+.search-result.active {
+  background: var(--bg-secondary);
+}
+
+.search-result-title {
+  display: block;
+  font-weight: 600;
+}
+
+.search-result-date {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.search-result-tags {
+  margin-top: 0.25rem;
+}
+
+.search-tag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  margin-right: 0.25rem;
+}
+
+.search-no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.search-hint {
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ========================================
+   Sticky Footer
+   ======================================== */
+main {
+  flex: 1 0 auto;
+}
+
+footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--link);
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+@media (max-width: 600px) {
+  .hamburger {
+    display: inline;
+  }
+
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--bg);
+    border: 1px solid var(--control-border);
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 100;
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+
+  /* No JS means toggleMenu can never run, so fall back to the inline links
+     rather than hiding navigation entirely. */
+  .no-js .hamburger {
+    display: none;
+  }
+
+  .no-js .nav-links {
+    display: contents;
+  }
+
+  .post-list li {
+    flex-wrap: wrap;
+  }
+
+  /* Justification needs enough characters per line; below this width it opens rivers. */
+  article p {
+    text-align: left;
+    hyphens: none;
+  }
+
+}
+
+/* ========================================
+   Wide Content
+   ======================================== */
+/* A wide table scrolls inside a wrapper rather than pushing the page sideways.
+   The wrapper (not display:block on the table) is what keeps row/cell semantics
+   intact for screen readers, and scripts.html gives it tabindex so the scroll
+   region is reachable by keyboard. */
+.table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+  margin: 1.5rem 0;
+}
+
+.table-wrapper:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+/* No-JS fallback: without the wrapper the table still must not break the page. */
+.no-js article table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* A3: an unbroken URL in prose is wider than a 320px viewport on its own. */
+article p,
+article li,
+article h1, article h2, article h3, article h4 {
+  overflow-wrap: break-word;
+}
+
+/* ========================================
+   Focus Visibility
+   ======================================== */
+/* One visible indicator for everything keyboard-reachable. Never remove this
+   without replacing it: it is the only way a keyboard user tracks position. */
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Available to assistive tech, invisible on screen. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 1100;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* Both controls are JS-only; showing them without JS offers a dead button. */
+.no-js .theme-toggle,
+.no-js .search-toggle {
+  display: none;
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+/* Honors the OS-level setting for users who get motion sickness or migraines. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
+   Print
+   ======================================== */
+@media print {
+  /* Paper is white whatever the screen theme was; without this the dark palette
+     prints #d8d8d8 on white at 1.4:1. */
+  :root, [data-theme="light"], [data-theme="dark"] {
+    --bg: #fff;
+    --bg-secondary: #fff;
+    --text: #000;
+    --text-muted: #333;
+    --link: #000;
+    --code-bg: #f7f7f7;
+    --code-border: #ccc;
+    --border: #ccc;
+  }
+
+  header nav, .search-modal, .copy-code-btn, .skip-link, footer {
+    display: none !important;
+  }
+
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+
+  /* Only external links carry a URL worth printing; in-page anchors and footnote
+     refs would print as "(#fn:1)". */
+  article a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    word-break: break-all;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    border: 1px solid #ccc;
+  }
+
+  /* syntax.css keys on data-theme, so a dark page keeps its light-on-dark token
+     colours on white paper (strings hit 1.4:1). Print code monochrome instead;
+     weight still distinguishes keywords. */
+  .chroma,
+  .chroma * {
+    color: #000 !important;
+    background: transparent !important;
+  }
+}

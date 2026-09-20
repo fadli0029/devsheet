@@ -1,0 +1,18 @@
+name = "devsheet"
+license = "MIT"
+licenselink = "https://github.com/fadli0029/devsheet/blob/main/LICENSE"
+description = "Minimal monospace Hugo theme for developer portfolios and technical blogs. Client-side search, light/dark, KaTeX, zero third-party requests."
+homepage = "https://github.com/fadli0029/devsheet"
+demosite = "https://fadli0029.github.io/devsheet/"
+min_version = "0.122.0"
+
+tags = ["minimal", "portfolio", "blog", "monospace", "dark mode", "light mode", "search", "katex", "responsive", "accessible"]
+features = ["search", "dark mode", "syntax highlighting", "math", "rss", "seo", "responsive", "no external dependencies"]
+
+[author]
+  name = "Fadli Arsani"
+  homepage = "https://fadli.sh"
+
+[module]
+  [module.hugoVersion]
+    min = "0.122.0"

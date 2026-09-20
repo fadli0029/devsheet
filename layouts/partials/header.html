@@ -1,0 +1,36 @@
+{{ $searchIndex := .Site.Home.OutputFormats.Get "json" }}
+<header>
+  <a href="{{ .Site.Home.RelPermalink }}" class="site-title">{{ .Site.Params.author | default .Site.Title }}</a>
+  <nav aria-label="Main">
+    {{/* Glyph comes from CSS keyed on data-theme, so it is correct at first paint. */}}
+    <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-pressed="false" aria-label="Toggle theme"></button>
+    {{ with $searchIndex }}
+    <button type="button" class="search-toggle" onclick="openSearch()" aria-label="Search">search</button>
+    {{ end }}
+    <button type="button" class="hamburger" onclick="toggleMenu()" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">menu</button>
+    <div class="nav-links" id="nav-links">
+      {{ range .Site.Menus.main }}
+      <a href="{{ .URL }}">{{ .Name }}</a>
+      {{ end }}
+    </div>
+  </nav>
+</header>
+
+{{/* Native <dialog>: showModal() gets the focus trap, the inert background, and
+     Escape-to-close from the platform. Hand-rolling those on a div is how a modal
+     ends up telling screen readers the background is inert while it is still
+     reachable, which is what aria-modal="true" on a plain div asserts. */}}
+{{ with $searchIndex }}
+<dialog id="search-modal" class="search-modal" data-index="{{ .RelPermalink }}" aria-label="Search posts">
+  <div class="search-container">
+    {{/* Deliberately type="text", not type="search": browsers make Escape clear a
+         search field and swallow the key, so the first Escape would fail to close
+         the dialog. Verified: type="search" needs two presses, type="text" one. */}}
+    <input type="text" id="search-input" placeholder="Search posts..." autocomplete="off"
+           role="combobox" aria-label="Search posts" aria-controls="search-results" aria-expanded="false">
+    <div id="search-results" role="listbox" aria-label="Search results"></div>
+    <div id="search-status" role="status" aria-live="polite" class="visually-hidden"></div>
+    <div class="search-hint">&uarr;&darr; to navigate &middot; Enter to open &middot; Esc to close</div>
+  </div>
+</dialog>
+{{ end }}

@@ -1,0 +1,186 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Read-only: these jobs build and assert, they never publish. No event data is
+# interpolated into any run: block, so there is no injection surface.
+permissions:
+  contents: read
+
+# Supersede in-flight runs for the same ref rather than burning minutes on
+# results nobody will read.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Pinned versions are the contract: min is what theme.toml claims, and a break
+  # on any of them is a real regression that must block the merge.
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        hugo: ["0.122.0", "0.128.0", "0.154.4"]
+        extended: [true, false]
+    steps:
+      - uses: actions/checkout@v4
+
+      # README claims the extended build is not required, so half the matrix proves it.
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: ${{ matrix.hugo }}
+          extended: ${{ matrix.extended }}
+
+      # Hugo resolves `theme = "devsheet"` to <themesDir>/devsheet, so the theme
+      # must sit in a directory of that name. The checkout is named after the
+      # repo, which breaks on a rename or a differently-named fork; stage it
+      # under a fixed name instead of relying on `--themesDir ../..`.
+      - name: Stage theme
+        run: |
+          mkdir -p /tmp/themes
+          cp -r "$GITHUB_WORKSPACE" /tmp/themes/devsheet
+
+      # --panicOnWarning turns deprecations and template warnings into failures,
+      # so the theme cannot rot quietly as Hugo moves.
+      - name: Build exampleSite
+        run: hugo --source exampleSite --themesDir /tmp/themes --minify --panicOnWarning --destination /tmp/out
+
+      - name: Assert the build actually produced pages
+        run: |
+          for f in index.html index.json index.xml robots.txt blog/index.html; do
+            test -s "/tmp/out/$f" || { echo "::error::missing or empty: $f"; exit 1; }
+          done
+          echo "exampleSite produced $(find /tmp/out -name '*.html' | wc -l) HTML pages"
+
+      # A build can succeed while Goldmark silently mangles every equation, so
+      # assert the LaTeX survived to the HTML rather than only that files exist.
+      - name: Assert math survived Markdown processing
+        run: |
+          f=/tmp/out/blog/2024-12-01-lorem-ipsum-features/index.html
+          grep -q 'begin{align}' "$f" || { echo "::error::align environment was eaten"; exit 1; }
+          grep -q 'costs \$5 today' "$f" || { echo "::error::currency in prose was mangled"; exit 1; }
+          grep -q 'set \$HOME' "$f" || { echo "::error::shell variables in prose were mangled"; exit 1; }
+          echo "math and prose survived"
+
+  # Hugo `latest` moves under us. This leg is advisory: it must build, but its
+  # warnings are surfaced in the log rather than promoted to failures. Hugo
+  # deprecated `languageCode` in 0.158 in favour of `locale`, and `locale` does
+  # not exist on the 0.112 floor this theme supports, so a deprecation warning
+  # here is expected and must not red an unrelated PR.
+  latest-canary:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: latest
+          extended: true
+
+      - name: Stage theme
+        run: |
+          mkdir -p /tmp/themes
+          cp -r "$GITHUB_WORKSPACE" /tmp/themes/devsheet
+
+      - name: Build on the newest Hugo
+        run: |
+          hugo --source exampleSite --themesDir /tmp/themes --minify --destination /tmp/out 2>&1 | tee /tmp/hugo.log
+          test -s /tmp/out/index.html || { echo "::error::latest Hugo produced no output"; exit 1; }
+          if grep -qi 'deprecat' /tmp/hugo.log; then
+            echo "::warning::deprecation notice from Hugo latest — review before it becomes an error"
+            grep -i 'deprecat' /tmp/hugo.log
+          fi
+
+  # Regression guard for the defect where the theme was nested one level too deep
+  # and a normal install silently produced an empty site.
+  consumer-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: devsheet
+
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: latest
+          extended: true
+
+      - name: Install devsheet the way a user would
+        run: |
+          hugo new site consumer
+          mkdir -p consumer/themes
+          cp -r devsheet consumer/themes/devsheet
+          cat > consumer/hugo.toml <<'EOF'
+          baseURL = "https://example.com/"
+          languageCode = "en-us"
+          title = "Consumer Site"
+          theme = "devsheet"
+          [params]
+            mainSections = ["blog"]
+          [outputs]
+            home = ["HTML", "RSS", "JSON"]
+          EOF
+          mkdir -p consumer/content/blog
+          printf -- '---\ntitle: "Hello"\ndate: 2026-01-01\n---\n\nHi.\n' > consumer/content/blog/hello.md
+
+      - name: Build and assert it rendered
+        run: |
+          hugo --source consumer --minify --destination /tmp/consumer-out
+          test -s /tmp/consumer-out/index.html \
+            || { echo "::error::theme is not installable: no index.html"; exit 1; }
+          test -s /tmp/consumer-out/blog/hello/index.html \
+            || { echo "::error::theme did not render a post"; exit 1; }
+          grep -q "site-title" /tmp/consumer-out/index.html \
+            || { echo "::error::theme layouts were not applied"; exit 1; }
+          echo "consumer install renders correctly"
+
+      # The archetype must reach consumers, not just exampleSite. It previously
+      # shipped only under exampleSite/, where Hugo never looks for an installed
+      # theme, so `hugo new` silently fell back to Hugo's built-in stub.
+      - name: Assert the archetype reaches a consumer
+        run: |
+          cd consumer
+          # `hugo new site` scaffolds its own archetypes/default.md, and a site
+          # archetype always shadows the theme's. Removing it is what the README
+          # tells users to do, so test that documented state.
+          rm -f archetypes/default.md
+          hugo new content blog/2026-01-01-archetype-check.md
+          f=content/blog/2026-01-01-archetype-check.md
+          grep -q 'title: "Archetype Check"' "$f" \
+            || { echo "::error::archetype did not strip the date prefix"; cat "$f"; exit 1; }
+          grep -q '^date: 2026-01-01$' "$f" \
+            || { echo "::error::archetype did not take the date from the filename"; cat "$f"; exit 1; }
+          grep -q '^description:' "$f" \
+            || { echo "::error::archetype is Hugo's built-in stub, not the theme's"; cat "$f"; exit 1; }
+          echo "archetype reaches consumers"
+
+  # The whole point of vendoring is that a built site talks to nobody but its host.
+  no-external-requests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: latest
+          extended: true
+
+      - name: Stage theme
+        run: |
+          mkdir -p /tmp/themes
+          cp -r "$GITHUB_WORKSPACE" /tmp/themes/devsheet
+
+      - run: hugo --source exampleSite --themesDir /tmp/themes --minify --destination /tmp/out
+
+      - name: Assert no external subresources in the output
+        run: python3 scripts/check-no-external.py /tmp/out https://example.com/

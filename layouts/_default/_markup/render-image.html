@@ -1,0 +1,8 @@
+{{- $url := .Destination -}}
+{{- if hasPrefix $url "/" -}}
+  {{/* relURL ignores the subdirectory when the input starts with "/"
+       (gohugoio/hugo#9994), so trim it first. Relative, not absURL: an absolute
+       URL bakes one hostname into the built HTML. */}}
+  {{- $url = $url | strings.TrimPrefix "/" | relURL -}}
+{{- end -}}
+<img src="{{ $url }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy" />

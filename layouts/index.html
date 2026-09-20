@@ -1,0 +1,50 @@
+{{ define "main" }}
+{{ $main := .Site.Params.mainSections }}
+{{/* Optional [params.sectionLabels]: rename a section in the home list without
+     forking this template, e.g. bits = "bit" to label posts [bit] not [bits]. */}}
+{{ $labels := .Site.Params.sectionLabels | default dict }}
+<h1 class="visually-hidden">{{ .Site.Title }}</h1>
+<section class="intro">
+  {{ if .Content }}
+  {{ .Content }}
+  {{ else }}
+  <p>{{ .Site.Params.description }}</p>
+  {{ end }}
+  <div class="links">
+    {{ with .Site.Params.github }}<a href="{{ . }}">github</a>{{ end }}
+    {{ with .Site.Params.linkedin }}<a href="{{ . }}">linkedin</a>{{ end }}
+    {{ with .Site.Params.email }}<a href="mailto:{{ . }}" class="copy-email" data-email="{{ . }}">email</a>{{ end }}
+  </div>
+</section>
+
+{{ with first 5 (where .Site.RegularPages "Section" "in" $main) }}
+<section>
+  <h2 class="section-title">Recent Posts</h2>
+  <ul class="post-list">
+    {{ range . }}
+    <li>
+      <span class="post-date">{{ if not .Date.IsZero }}{{ .Date.Format "2006-01-02" }}{{ end }}</span>
+      {{ if gt (len $main) 1 }}<span class="post-section">[{{ index $labels .Section | default .Section }}]</span>{{ end }}
+      <a href="{{ .RelPermalink }}" class="post-title">{{ .Title }}</a>
+    </li>
+    {{ end }}
+  </ul>
+</section>
+{{ end }}
+
+{{ if .Site.Params.showProjects }}
+{{ with first 3 (where .Site.RegularPages "Section" "projects") }}
+<section>
+  <h2 class="section-title">Projects</h2>
+  <ul class="project-list">
+    {{ range . }}
+    <li>
+      <a href="{{ .RelPermalink }}" class="project-title">{{ .Title }}</a>
+      {{ with .Params.description }}<span class="project-desc">{{ . }}</span>{{ end }}
+    </li>
+    {{ end }}
+  </ul>
+</section>
+{{ end }}
+{{ end }}
+{{ end }}

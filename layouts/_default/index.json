@@ -1,0 +1,14 @@
+{{- $pages := where .Site.RegularPages "Section" "in" .Site.Params.mainSections -}}
+[
+{{- range $index, $page := $pages -}}
+{{- if $index }},{{ end }}
+{
+  "title": {{ $page.Title | jsonify }},
+  "url": {{ $page.RelPermalink | jsonify }},
+  "date": {{ if $page.Date.IsZero }}""{{ else }}{{ $page.Date.Format "2006-01-02" | jsonify }}{{ end }},
+  "section": {{ $page.Section | jsonify }},
+  "tags": {{ with $page.Params.tags }}{{ . | jsonify }}{{ else }}[]{{ end }},
+  "summary": {{ (substr $page.Plain 0 200) | jsonify }}
+}
+{{- end }}
+]

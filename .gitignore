@@ -1,5 +1,7 @@
 # Hugo build output
 public/
+exampleSite/public/
+resources/
 resources/_gen/
 
 # Hugo local
@@ -18,3 +20,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Python
+__pycache__/
+*.py[cod]

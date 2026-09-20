@@ -1,0 +1,70 @@
+baseURL = "https://example.com/"
+languageCode = "en-us"
+title = "Lorem Ipsum"
+theme = "devsheet"
+enableRobotsTXT = true
+
+[params]
+  # Sections listed on the home page and covered by search.
+  mainSections = ["blog"]
+  author = "lorem ipsum"
+  description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+  github = "https://github.com/username"
+  linkedin = "https://linkedin.com/in/username"
+  email = "hello@example.com"
+  syntaxHighlighting = true
+  # KaTeX is ~600KB of script and fonts. Set false if you never write math.
+  math = true
+  showProjects = true
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+    # Without this Goldmark mangles LaTeX before KaTeX sees it: "\\" collapses to
+    # "\", "\," is eaten, and a*b*c becomes a<em>b</em>c. Requires Hugo 0.122.0+.
+    [markup.goldmark.extensions.passthrough]
+      enable = true
+      [markup.goldmark.extensions.passthrough.delimiters]
+        block  = [['\[', '\]'], ['$$', '$$'],
+                  ['\begin{equation}', '\end{equation}'],
+                  ['\begin{align}', '\end{align}'],
+                  ['\begin{alignat}', '\end{alignat}'],
+                  ['\begin{gather}', '\end{gather}'],
+                  ['\begin{CD}', '\end{CD}']]
+        inline = [['\(', '\)']]
+  [markup.highlight]
+    anchorLineNos = false
+    codeFences = true
+    guessSyntax = false
+    hl_Lines = ""
+    hl_inline = false
+    lineAnchors = ""
+    lineNoStart = 1
+    lineNos = false
+    lineNumbersInTable = true
+    noClasses = false
+    noHl = false
+    style = "github"
+    tabWidth = 4
+
+[menu]
+  [[menu.main]]
+    name = "blog"
+    url = "/blog/"
+    weight = 1
+  [[menu.main]]
+    name = "projects"
+    url = "/projects/"
+    weight = 2
+  [[menu.main]]
+    name = "about"
+    url = "/about/"
+    weight = 3
+
+[outputs]
+  # JSON builds the search index; dropping RSS here would also drop the feed.
+  home = ["HTML", "RSS", "JSON"]
+  section = ["HTML", "RSS"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]

@@ -18,6 +18,10 @@ defaults:
   run:
     shell: bash
 
+env:
+  # Pinned so a Hugo release cannot break your site without you asking for it.
+  HUGO_VERSION: "0.154.4"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,16 +32,36 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: 'latest'
+          hugo-version: ${{ env.HUGO_VERSION }}
           extended: true
 
+      # Supplies base_url, which is the repo's real Pages URL. Using it means the
+      # build is correct whether Pages serves you from a user domain or a /repo/
+      # subpath, with no edit to this file after forking.
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      # Hugo resolves `theme = "devsheet"` to <themesDir>/devsheet, and the
+      # checkout is named after the repo. Stage under a fixed name so a rename
+      # or a differently-named fork still builds.
+      - name: Stage theme
+        run: |
+          mkdir -p /tmp/themes
+          cp -r "$GITHUB_WORKSPACE" /tmp/themes/devsheet
+
+      # Publishes exampleSite, which is the theme's live demo.
       - name: Build
-        run: hugo --minify --baseURL "https://fadli0029.github.io/devsheet/"
+        run: |
+          hugo --source exampleSite --themesDir /tmp/themes \
+               --minify --gc \
+               --baseURL "${{ steps.pages.outputs.base_url }}/" \
+               --destination public
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./public
+          path: ./exampleSite/public
 
   deploy:
     environment:
