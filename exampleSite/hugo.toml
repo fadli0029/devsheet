@@ -23,10 +23,12 @@ enableRobotsTXT = true
       unsafe = true
     # Without this Goldmark mangles LaTeX before KaTeX sees it: "\\" collapses to
     # "\", "\," is eaten, and a*b*c becomes a<em>b</em>c. Requires Hugo 0.122.0+.
+    # \[…\] is deliberately absent: claiming it would override the CommonMark
+    # escape for a literal "[". See the Math section of the README.
     [markup.goldmark.extensions.passthrough]
       enable = true
       [markup.goldmark.extensions.passthrough.delimiters]
-        block  = [['\[', '\]'], ['$$', '$$'],
+        block  = [['$$', '$$'],
                   ['\begin{equation}', '\end{equation}'],
                   ['\begin{align}', '\end{align}'],
                   ['\begin{alignat}', '\end{alignat}'],

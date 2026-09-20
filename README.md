@@ -151,8 +151,8 @@ effect there.
 
 ### Math
 
-KaTeX renders `$$…$$`, `\[…\]`, `\(…\)` and the `\begin{align}` / `{equation}` /
-`{gather}` / `{CD}` environments.
+Write display math as `$$…$$`, inline math as `\(…\)`, and the `\begin{align}` /
+`{equation}` / `{gather}` / `{CD}` environments as themselves.
 
 Math needs the passthrough extension, which stops Goldmark mangling LaTeX before
 KaTeX sees it (`\\` collapses to `\`, `\,` disappears, `a*b*c` becomes
@@ -163,16 +163,30 @@ Every delimiter you intend to use must be listed here, including the environment
 [markup.goldmark.extensions.passthrough]
   enable = true
   [markup.goldmark.extensions.passthrough.delimiters]
-    block  = [['\[', '\]'], ['$$', '$$']]
+    block  = [['$$', '$$']]
     inline = [['\(', '\)']]
 ```
+
+Hugo's own math documentation lists `\[…\]` as the block delimiter. This theme
+omits it on purpose. A passthrough delimiter wins over CommonMark's backslash
+escapes, so listing `\[` stops `\[` meaning a literal `[`. Since `[` is
+Markdown-significant, that escape gets used in practice, and
+`[\[expr.context\]](url)` silently turns its own link text into display math.
+`(` carries no meaning in ordinary Markdown text, so `\(` costs nothing to claim
+and inline math keeps its LaTeX spelling. Add `['\[', '\]']` back to `block` if
+you want the LaTeX display spelling and never escape a bracket; KaTeX is already
+configured to render it.
+
+Hugo will not let a theme supply this block for you: the `markup` key defaults to
+a `none` merge strategy, so it has to live in each site's own configuration.
 
 `$…$` for **inline** math is off by default and gated behind
 `mathInlineDollar = true`. Turning it on also requires adding `['$', '$']` to the
 passthrough `inline` list above, or Goldmark mangles it first. On a developer blog
 it collides with ordinary prose:
 "costs $5 today and $10 tomorrow" and "set $HOME and then $PATH" both become
-mangled math. Prefer `\(…\)` for inline.
+mangled math. It also makes `\$` render a bare `$` that KaTeX then eats, so a
+literal dollar needs `&dollar;`. Prefer `\(…\)` for inline.
 
 ### Search
 

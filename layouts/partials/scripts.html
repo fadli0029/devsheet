@@ -334,6 +334,11 @@ document.addEventListener('DOMContentLoaded', function () {
      \begin{align}/{equation}/{gather}/{CD} block. The full default set is spelled
      out here so nothing is lost.
 
+     \[…\] stays listed even though the recommended passthrough config omits it.
+     Without that passthrough entry Goldmark applies the CommonMark escape and
+     KaTeX never sees a \[ to match, so a site opts back in from its own hugo.toml
+     alone. See the Math section of the README.
+
      $…$ for inline math is OFF by default: it collides with ordinary prose on a
      developer blog, turning "costs $5 today and $10 tomorrow" and "set $HOME and
      $PATH" into mangled math. Opt in with mathInlineDollar = true. */}}
