@@ -1,0 +1,19 @@
+{{- if not .Parent -}}
+  {{- errorf "figure-state must be inside figure-states: %s" .Position -}}
+{{- end -}}
+{{- $src := .Get "src" -}}
+{{- with .Page.Resources.Get $src -}}
+  {{- $src = .RelPermalink -}}
+{{- else -}}
+  {{- errorf "figure-state: no page resource named %q: %s" $src .Position -}}
+{{- end -}}
+{{- $group := printf "figure-states-%d" .Parent.Ordinal -}}
+{{- $id := printf "%s-%d" $group .Ordinal -}}
+<input class="figure-states-input visually-hidden" type="radio" name="{{ $group }}" id="{{ $id }}"{{ if eq .Ordinal 0 }} checked{{ end }}>
+<label class="figure-states-tab" for="{{ $id }}">{{ .Get "label" }}</label>
+<div class="figure-states-panel">
+  <img src="{{ $src }}" alt="{{ .Get "alt" }}" loading="lazy">
+  {{- with strings.TrimSpace .Inner }}
+  <p class="figure-states-caption">{{ $.Page.RenderString . }}</p>
+  {{- end }}
+</div>

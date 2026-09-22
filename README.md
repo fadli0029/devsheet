@@ -26,6 +26,8 @@ fails the build if any external subresource reappears.
 - Collapsing mobile menu
 - Copy button on every code block
 - KaTeX math and Chroma syntax highlighting
+- Per-page table of contents and numbered headings, opt-in from front matter
+- Figures with several states behind tabs, without JavaScript
 - RSS with autodiscovery, canonical URLs, Open Graph, and Twitter Card meta
 - Keyboard accessible: visible focus rings, skip link, `prefers-reduced-motion`
   honored, AA contrast in both themes
@@ -242,12 +244,38 @@ github: "https://github.com/you/repo"   # optional, adds a GitHub link
 | `tags` | No | Indexed by search, shown as chips in results |
 | `pdf` | No | Path to a PDF; shows a download link in the article header |
 | `github` | No | Shows a GitHub link in the article header |
+| `toc` | No | `true` adds a table of contents of the page's h2 and h3 headings: under the title on narrow screens, a sticky column right of the article from 80em wide |
+| `numberedHeadings` | No | `true` numbers h2 as 1, 2, ... and h3 as 1.1, 1.2, ...; the table of contents, if on, shows the same numbers |
 
 ### Images
 
 Put them in `static/img/` and reference them as `![alt text](/img/filename.png)`.
 Root-relative paths are rewritten against `baseURL`, so they keep working when the
 site is served from a subdirectory.
+
+In the dark theme every article image sits on a light backing (`--img-plate`), so a
+diagram drawn in dark ink on a transparent background, which is what TikZ and
+Mermaid export, stays readable.
+
+### Figures with several states
+
+`figure-states` shows one image at a time with a row of tabs to switch between
+them. Each `figure-state` names a tab, an image from the page bundle, its alt text,
+and an optional caption written in Markdown. It needs no JavaScript: the tabs are
+radio buttons.
+
+```markdown
+{{< figure-states label="Memory after each call" >}}
+{{< figure-state label="by_value(b)" src="memory-1.svg" alt="Memory after by_value(b)" >}}
+The copy constructor runs.
+{{< /figure-state >}}
+{{< figure-state label="by_lref(b)" src="memory-2.svg" alt="Memory after by_lref(b)" >}}
+p becomes another name for b.
+{{< /figure-state >}}
+{{< /figure-states >}}
+```
+
+The build fails if `src` does not name a resource in the page bundle.
 
 ## Customizing
 
@@ -264,8 +292,8 @@ your-site/
 Colors are CSS custom properties at the top of `assets/css/main.css`, grouped under
 `[data-theme="light"]` and `[data-theme="dark"]`. Redefine them in `custom.css` to
 restyle the theme without forking it. The full set is `--bg`, `--bg-secondary`,
-`--text`, `--text-muted`, `--link`, `--code-bg`, `--code-border`, `--border` and
-`--control-border`.
+`--text`, `--text-muted`, `--link`, `--code-bg`, `--code-border`, `--border`,
+`--control-border` and `--img-plate`.
 
 ## Deploying
 

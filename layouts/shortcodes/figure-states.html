@@ -1,0 +1,4 @@
+{{- /* A figure with several states and a tab per state. Children: figure-state. */ -}}
+<figure class="figure-states"{{ with .Get "label" }} aria-label="{{ . }}"{{ end }}>
+{{ .Inner }}
+</figure>

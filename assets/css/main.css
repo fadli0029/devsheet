@@ -65,6 +65,7 @@
     --code-border: #2a2a2a;
     --border: #2a2a2a;
     --control-border: #6a6a6a;
+    --img-plate: #f3f3f3;
   }
 }
 
@@ -79,6 +80,7 @@
   --code-border: #e0e0e0;
   --border: #ddd;
   --control-border: #898989;
+  --img-plate: transparent;
 }
 
 [data-theme="dark"] {
@@ -91,6 +93,7 @@
   --code-border: #2a2a2a;
   --border: #2a2a2a;
   --control-border: #6a6a6a;
+  --img-plate: #f3f3f3;
 }
 
 /* ========================================
@@ -263,6 +266,129 @@ article a:hover {
 }
 
 /* ========================================
+   Numbered Headings (front matter: numberedHeadings: true)
+   h2 is numbered 1, 2, ... and h3 1.1, 1.2, ..., the clause numbering of ISO
+   standards. The table of contents repeats the same numbers.
+   ======================================== */
+.numbered-headings {
+  counter-reset: h2;
+}
+
+.numbered-headings h2 {
+  counter-reset: h3;
+  counter-increment: h2;
+}
+
+.numbered-headings h3 {
+  counter-increment: h3;
+}
+
+.numbered-headings h2::before {
+  content: counter(h2);
+}
+
+.numbered-headings h3::before {
+  content: counter(h2) "." counter(h3);
+}
+
+.numbered-headings h2::before,
+.numbered-headings h3::before,
+.numbered-headings .toc a::before {
+  margin-right: 0.6em;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.numbered-headings .toc ol {
+  counter-reset: toc;
+}
+
+/* Counted on the link, not the li: ToHTML emits an empty li for a skipped level. */
+.numbered-headings .toc li > a {
+  counter-increment: toc;
+}
+
+.numbered-headings .toc li > a::before {
+  content: counters(toc, ".");
+}
+
+/* ========================================
+   Table of Contents (front matter: toc: true)
+   Inline under the title by default, and a sticky column right of the article once
+   the viewport has room for it (see the min-width query below).
+   ======================================== */
+.toc {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+}
+
+.toc-title {
+  margin: 0 0 0.5rem;
+  color: var(--text);
+  text-align: left;
+  hyphens: manual;
+}
+
+.toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc ol ol {
+  padding-left: 1.25rem;
+}
+
+.toc li {
+  margin: 0.35rem 0;
+}
+
+/* No underline needed: every item is a link, so colour never has to tell a link
+   apart from surrounding text (WCAG 1.4.1). */
+.toc a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.toc a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+/* The width is the free space right of the article (100% is the article's width)
+   less the 2.5rem gap and a 1.5rem margin, capped at 15rem, so the column can never
+   overflow whatever the font metrics or scrollbar width. At 80em that space is
+   about 12rem; any narrower and the TOC stays inline. em, so the breakpoint scales
+   with the reader's font size like the 75ch column does. */
+@media (min-width: 80em) {
+  .has-toc {
+    position: relative;
+  }
+
+  .toc {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(100% + 2.5rem);
+    width: min(15rem, calc((100vw - 100%) / 2 - 4rem));
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .toc-inner {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+}
+
+/* ========================================
    Code Blocks
    ======================================== */
 code {
@@ -353,11 +479,73 @@ img {
   height: auto;
 }
 
-/* Article images - full content width */
+/* Article images - full content width. Diagrams exported from TikZ or Mermaid are
+   dark ink on a transparent background, 1.2:1 against the dark palette, so the dark
+   palette sets --img-plate to put a light backing behind every image. */
 article img {
   width: 100%;
   height: auto;
   margin: 1.5rem 0;
+  background: var(--img-plate);
+}
+
+/* ========================================
+   Figure With Several States (shortcodes figure-states and figure-state)
+   Works without JavaScript: each state is a radio input, the checked input's panel
+   is the one shown, and flex order moves every panel below the row of tabs.
+   ======================================== */
+.figure-states {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.figure-states-tab {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--control-border);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.figure-states-tab:hover {
+  color: var(--text);
+}
+
+.figure-states-input:checked + .figure-states-tab {
+  color: var(--text);
+  border-color: var(--text);
+  background: var(--bg-secondary);
+}
+
+.figure-states-input:focus-visible + .figure-states-tab {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.figure-states-panel {
+  display: none;
+  order: 1;
+  flex-basis: 100%;
+}
+
+.figure-states-input:checked + .figure-states-tab + .figure-states-panel {
+  display: block;
+}
+
+.figure-states-panel img {
+  margin: 0.5rem 0 0;
+}
+
+.figure-states-caption {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: left;
+  hyphens: manual;
 }
 
 /* ========================================
@@ -984,6 +1172,7 @@ main:focus {
     --code-bg: #f7f7f7;
     --code-border: #ccc;
     --border: #ccc;
+    --img-plate: transparent;
   }
 
   header nav, .search-modal, .copy-code-btn, .skip-link, footer {

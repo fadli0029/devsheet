@@ -1,5 +1,12 @@
 {{ define "main" }}
-<article>
+{{- /* Levels 2-3 match the levels main.css numbers under numberedHeadings. */ -}}
+{{- $toc := "" -}}
+{{- if .Params.toc }}{{ $toc = .Fragments.ToHTML 2 3 true }}{{ end -}}
+{{- $hasToc := strings.Contains (string $toc) "<a " -}}
+{{- $classes := slice -}}
+{{- if $hasToc }}{{ $classes = $classes | append "has-toc" }}{{ end -}}
+{{- if .Params.numberedHeadings }}{{ $classes = $classes | append "numbered-headings" }}{{ end -}}
+<article{{ with $classes }} class="{{ delimit . " " }}"{{ end }}>
   <div class="article-header">
     <h1 class="article-title">{{ .Title }}</h1>
     <div class="article-meta">
@@ -20,6 +27,15 @@
       {{ end }}
     </div>
   </div>
+
+  {{ if $hasToc }}
+  <aside class="toc" aria-labelledby="toc-title">
+    <div class="toc-inner">
+      <p class="toc-title" id="toc-title">Contents</p>
+      {{ $toc }}
+    </div>
+  </aside>
+  {{ end }}
 
   {{ .Content }}
 </article>
